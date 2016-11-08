@@ -1,28 +1,28 @@
-Tiny: Hipchat Client
+Hippy: A Bash Hipchat Client
 ===========
 
-<b>Tiny</b> is Bash script to send messages to [HipChat][hc].
+**Hippy** is Bash script to send messages to [HipChat][hc]. **Hippy** is perfect for those looking to create clean, minimal Docker containers.
 
-## Why A Bash?
-Tiny does not require any special packages or libraries (other than Bash). This ensures it was a perfect companion for minimal Docker containers.
+## Why Hippy?
+**Hippy** does not require any special packages or libraries (other than Bash). This makes it a perfect companion for minimal Docker containers.
 
-The `hipchat` script is approximately `8KB`. A similar python client used approximately `10MB+` once all the supporting python packages, dependencies and libraries were installed. On alpine linux, bash is about `618KB`, so the overall footptint at `< 650KB` is pretty small.
+The **Hippy** `hipchat` script is approximately `8KB`. A python Hipchat client may use approximately `10MB+` once all the supporting python packages, dependencies and libraries were installed. On alpine linux, bash is about `618KB`, so the overall footptint at `< 650KB` is pretty small.
 
-One caveat: If you already are using Python and have the packages, dependencies and libraries required for a Python based HipChat client, that might be the way to go! The same is true for Java, Go, PHP or whatever your preference is.
+*One caveat*: If you already are using Python and have the packages, dependencies and libraries required for a Python based HipChat client, that might be the way to go! The same is true for Java, Go, PHP or whatever your preference is.
 
 ## How Does It Work?
 
-Sending a message is simple:
+Once you have it installed and configured sending a message is as simple as:
 
 ```bash
-hipchat -t <token> -r <room> -f <from> -i <message>
+hipchat -i "hello hipchat world"
 ```
 
 [hc]: http://www.hipchat.com
 
-### You Have a Few Options
+### Commands
 
-Command-line options are passed into hipchat-cli. A list of options is available by executing ```hipchat -h```.
+Command-line options are passed into Hippy. A list of options is available by executing ```hipchat -h```.
 ```bash
 -h Show this message
 -C Path to config file
@@ -38,13 +38,16 @@ Command-line options are passed into hipchat-cli. A list of options is available
 -v API version (default: v2)
 ```
 
+Here is an example:
 ```bash
 hipchat -t 123123213131231lj3l1 -r devops -f server-o1 -i "System is at 90% capcity" -l critical -n True
 ```
 
 ## Configuration
 
-Place `hipchat` into `/usr/bin` or whatever location best suits you. The default install for me is typically `/usr/bin` but you can do whatever works for you. If you place the script into a location like `/usr/local/bin/hipchat` you need to adjust any examples provided in the README accordingly.
+Place `hipchat` into `/usr/bin` or whatever location best suits you.
+
+The default install for me is typically `/usr/bin` but you can do whatever works for you. If you place the script into a location like `/usr/local/bin/hipchat` you need to adjust any examples provided in the README accordingly.
 
 ### Environment
 `hipchat` can be configured in command line mode, with environment variables, a config file or combination of all three.
@@ -59,7 +62,7 @@ You can pass the values into the script:
 ```bash
 cat message.txt | HIPCHAT_TOKEN=<token> HIPCHAT_ROOM_ID=<room id> hipchat -f "System"
 ```
-Here is another example passing variables to Tiny:
+Here is another example passing variables to Hippy:
 ```bash
 hipchat -t 292932932921989108301938 -r pizza -f deliverybot -i "Your pizza is almost ready"
 ```
@@ -151,3 +154,18 @@ if your configuration file was located someplace other than `/etc/hipchat.conf`,
 ```bash
 $ hipchat -C "/opt/usr/hipchat.conf" -i "Ok: We love pizza!"
 ```
+
+## Reference
+**Hippy** is based off of the Hipchat CLI client
+https://github.com/hipchat/hipchat-cli
+
+
+## License
+
+The MIT License (MIT) Copyright (c)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
