@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+
+set -e
+set -x
+
+usage() {
+  cat << EOF
+Usage: $0 -t <token> -r <room id> -f <from name>
+
+This script will read from stdin and send the contents to the given room as
+a system message.
+
+OPTIONS:
+   -h             Show this message
+   -t <token>     API token
+   -r <room id>   Room ID
+   -f <from name> From name
+   -c <color>     Message color (yellow, red, green, purple or random - default: gray)
+   -m <format>    Message format (html or text - default: html)
+   -i <message>   Optional: Message body to send to room (default: stdin)
+   -l <level>     Nagios message level (critical, warning, unknown, ok, down, up). Will override color.
+   -n             Trigger notification for people in the room (True or False)
+   -o             API host (api.hipchat.com)
+   -v <version>   API version (default: v2)
+EOF
+}
+
+while getopts "hC:t:r:f:c:m:n:i:l:o:v" opt
+  do
+  case $opt in
+    h) usage; exit 1;;
+    C) CONFIG=$OPTARG;;
+    t) TOKEN=$OPTARG;;
+    r) ROOM_ID=$OPTARG;;
+    f) FROM=$OPTARG;;
+    c) COLOR=$OPTARG;;
+    m) FORMAT=$OPTARG;;
+    n) NOTIFY=$OPTARG;;
+    i) MESSAGE=$OPTARG;;
+    l)
+      if [[ "${OPTARG}" = "CRITICAL" ]] || [[ "${OPTARG}" = "critical" ]]; then LEVEL=${OPTARG} && COLOR=${COLOR:-'red'}; fi
+      if [[ "${OPTARG}" = "WARNING" ]] || [[ "${OPTARG}" = "warning" ]]; then LEVEL=${OPTARG} && COLOR=${COLOR:-'yellow'}; fi
+      if [[ "${OPTARG}" = "UNKNOWN" ]] || [[ "${OPTARG}" = "unknown" ]]; then LEVEL=${OPTARG} && COLOR=${COLOR:-'gray'}; fi
+      if [[ "${OPTARG}" = "OK" ]] || [[ "${OPTARG}" = "ok" ]]; then LEVEL=${OPTARG} && COLOR=${COLOR:-'green'}; fi
+      if [[ "${OPTARG}" = "DOWN" ]] || [[ "${OPTARG}" = "down" ]]; then LEVEL=${OPTARG} && COLOR=${COLOR:-'red'}; fi
+      if [[ "${OPTARG}" = "UP" ]] || [[ "${OPTARG}" = "up" ]]; then LEVEL=${OPTARG} && COLOR=${COLOR:-'green'}; fi
+      ;;
+    o) HOST=$OPTARG;;
+    v) API=$OPTARG;;
+    [?]) usage; exit;;
+    esac
+  done
+
+# Import config file
+if [[ -f ${CONFIG} ]]; then source ${CONFIG}; else
+  # Set defaults
+    TOKEN=${HIPCHAT_TOKEN:-}
+    ROOM_ID=${HIPCHAT_ROOM_ID:-}
+    FROM=${HIPCHAT_FROM:-}
+    COLOR=${HIPCHAT_COLOR:-}
+    FORMAT=${HIPCHAT_FORMAT:-html}
+    MESSAGE=${HIPCHAT_MESSAGE:-}
+    HOST=${HIPCHAT_HOST:-api.hipchat.com}
+    LEVEL=${HIPCHAT_LEVEL:-}
+    API=${HIPCHAT_API:-v2}
+fi
+
+if [[ -z "${TOKEN+x}" ]]; then echo "WARNING: You do not have any TOKEN (-t) specified."; TOKEN="${TOKEN:-'This message is missing TOKEN'}" && usage && exit 1; else echo "INFO: TOKEN is set to '${TOKEN}'"; fi
+if [[ -z "${ROOM_ID+x}" ]]; then echo "WARNING: You do not have a ROOM_ID (-r) specified for the message."; ROOM_ID=${ROOM_ID:-'This message is missing a ROOM_ID'} && usage && exit 1; else echo "INFO: ROOM_ID is set to '${ROOM_ID}'"; fi
+if [[ -z "${FROM+x}" ]]; then echo "WARNING: You do not have a FROM (-f) specified for the message."; FROM=${FROM:-'This message is missing a FROM'} && usage && exit 1; else echo "INFO: FROM is set to '${FROM}'"; fi
+if [[ -z "${COLOR+x}" ]] && [[ -z ${LEVEL+x} ]]; then echo "INFO: You do not have a COLOR (-c) specified for the message."; COLOR=${COLOR:-'gray'}; else echo "INFO: COLOR is set to '${COLOR}'"; fi
+if [[ ${FORMAT} == 'html' ]]; then MESSAGE=$(echo -n "${MESSAGE}" | sed "s/$/\<br\>/"); fi
+if [[ -z "${MESSAGE}" ]]; then MESSAGE=$(cat); fi
+if [[ -z "${NOTIFY+x}" ]]; then NOTIFY="${NOTIFY:-'True'}"; else NOTIFY="${NOTIFY:-'False'}"; fi
+#MESSAGE=$(echo -n "${MESSAGE}" | perl -p -e "s/(?<!href=\"|href=')((?:https?|ftp|mailto)\:\/\/[^ \n]*)/\<a href=\"\1\"\>\1\<\/a>/g")
+
+function SEND() {
+  PAYLOAD="{ \
+    \"color\": \"${COLOR}\", \
+    \"message\": \"${MESSAGE}\", \
+    \"message_format\": \"${FORMAT}\", \
+    \"notify\": \"${NOTIFY}\" \
+  }"
+  exec 3>&1
+  echo "OK: Here is what will be posted to Hipchat: ${PAYLOAD}"
+  POST=$(curl -s -S -H 'Content-type: application/json' -d "${PAYLOAD}" -w "%{http_code}" -o >(cat >&3) "https://${HOST}/v2/room/${ROOM_ID}/notification?auth_token=${TOKEN}")
+  if [[ "${POST}" != 204 ]]; then echo "ERROR: The POST to the Hipchat API failed (${POST})" && exit 1; else echo "OK: Message successfully sent to the room ${ROOM_ID} via the Hipchat API"; fi
+}
+
+SEND
+exit 0
