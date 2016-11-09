@@ -25,6 +25,10 @@ OPTIONS:
 EOF
 }
 
+#OS=$(cat /etc/*-release)
+#if grep -q "Alpine Linux" <<< ${OS}; then echo exists; elif grep -q "Amazon Linux" <<< ${OS}; then echo exists; elif grep -q "CentOS" <<< ${OS}; then echo exists; elif grep -q "Ubuntu" <<< ${OS}; then echo exists; else echo "WARNING: No OS not detected"; fi
+i=0; n=0; progs=(curl perl); for p in "${progs[@]}"; do if hash "$p" &>/dev/null; then echo "$p is installed" && let c++; else echo "$p is not installed" && apk update && apk add $p && let n++;fi done && printf "%d of %d programs were installed.\n"  "$i" "${#progs[@]}" && printf "%d of %d programs were missing\n" "$n" "${#progs[@]}"
+
 while getopts "hC:t:r:f:c:m:n:i:l:o:v" opt
   do
   case $opt in
@@ -54,25 +58,20 @@ while getopts "hC:t:r:f:c:m:n:i:l:o:v" opt
 # Import config file
 if [[ -f ${CONFIG} ]]; then source ${CONFIG}; else
   # Set defaults
-    TOKEN=${HIPCHAT_TOKEN:-}
-    ROOM_ID=${HIPCHAT_ROOM_ID:-}
-    FROM=${HIPCHAT_FROM:-}
-    COLOR=${HIPCHAT_COLOR:-}
     FORMAT=${HIPCHAT_FORMAT:-html}
-    MESSAGE=${HIPCHAT_MESSAGE:-}
     HOST=${HIPCHAT_HOST:-api.hipchat.com}
-    LEVEL=${HIPCHAT_LEVEL:-}
     API=${HIPCHAT_API:-v2}
 fi
 
-if [[ -z "${TOKEN+x}" ]]; then echo "WARNING: You do not have any TOKEN (-t) specified."; TOKEN="${TOKEN:-'This message is missing TOKEN'}" && usage && exit 1; else echo "INFO: TOKEN is set to '${TOKEN}'"; fi
-if [[ -z "${ROOM_ID+x}" ]]; then echo "WARNING: You do not have a ROOM_ID (-r) specified for the message."; ROOM_ID=${ROOM_ID:-'This message is missing a ROOM_ID'} && usage && exit 1; else echo "INFO: ROOM_ID is set to '${ROOM_ID}'"; fi
-if [[ -z "${FROM+x}" ]]; then echo "WARNING: You do not have a FROM (-f) specified for the message."; FROM=${FROM:-'This message is missing a FROM'} && usage && exit 1; else echo "INFO: FROM is set to '${FROM}'"; fi
-if [[ -z "${COLOR+x}" ]] && [[ -z ${LEVEL+x} ]]; then echo "INFO: You do not have a COLOR (-c) specified for the message."; COLOR=${COLOR:-'gray'}; else echo "INFO: COLOR is set to '${COLOR}'"; fi
+if [[ -z "${TOKEN+x}" ]]; then echo "WARNING: You do not have any TOKEN (-t) specified." && TOKEN="${TOKEN:-'This message is missing TOKEN'}" && usage && exit 1; else echo "INFO: TOKEN is set to '${TOKEN}'"; fi
+if [[ -z "${ROOM_ID+x}" ]]; then echo "WARNING: You do not have a ROOM_ID (-r) specified for the message." && ROOM_ID=${ROOM_ID:-'This message is missing a ROOM_ID'} && usage && exit 1; else echo "INFO: ROOM_ID is set to '${ROOM_ID}'"; fi
+if [[ -z "${FROM+x}" ]]; then echo "INFO: You do not have a FROM (-f) specified for the message." && FROM=${FROM:-'hippy'}; else echo "INFO: FROM is set to '${FROM}'"; fi
+if [[ -z "${COLOR+x}" ]] && [[ -z ${LEVEL+x} ]]; then echo "INFO: You do not have a COLOR (-c) specified for the message." && COLOR=${COLOR:-'gray'}; else echo "INFO: COLOR is set to '${COLOR}'"; fi
 if [[ ${FORMAT} == 'html' ]]; then MESSAGE=$(echo -n "${MESSAGE}" | sed "s/$/\<br\>/"); fi
 if [[ -z "${MESSAGE}" ]]; then MESSAGE=$(cat); fi
 if [[ -z "${NOTIFY+x}" ]]; then NOTIFY="${NOTIFY:-'True'}"; else NOTIFY="${NOTIFY:-'False'}"; fi
-#MESSAGE=$(echo -n "${MESSAGE}" | perl -p -e "s/(?<!href=\"|href=')((?:https?|ftp|mailto)\:\/\/[^ \n]*)/\<a href=\"\1\"\>\1\<\/a>/g")
+
+MESSAGE=$(echo -n "${MESSAGE}" | perl -p -e "s/(?<!href=\"|href=')((?:https?|ftp|mailto)\:\/\/[^ \n]*)/\<a href=\"\1\"\>\1\<\/a>/g")
 
 function SEND() {
   PAYLOAD="{ \
