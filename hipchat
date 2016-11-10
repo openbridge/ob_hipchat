@@ -24,10 +24,11 @@ OPTIONS:
 EOF
 }
 
-#OS=$(cat /etc/*-release)
-#if grep -q "Alpine Linux" <<< ${OS}; then echo exists; elif grep -q "Amazon Linux" <<< ${OS}; then echo exists; elif grep -q "CentOS" <<< ${OS}; then echo exists; elif grep -q "Ubuntu" <<< ${OS}; then echo exists; else echo "WARNING: No OS not detected"; fi
+# Determine OS
+OS=$(cat /etc/*-release) && if grep -q "Alpine" <<< ${OS}; then echo "Alpine Linux" && INSTALL='apk update && apk add'; elif grep -q "Amazon" <<< ${OS}; then echo "Amazon Linux" && INSTALL='yum install $p -y'; elif grep -q "CentOS" <<< ${OS}; then echo "CentOS" && INSTALL='yum install $p -y'; elif grep -q "Ubuntu" <<< ${OS}; then echo "Ubuntu" && INSTALL='apt-get install $p -y'; else echo "WARNING: OS not detected. Please make sure CURL and PERL is installed as Hippy needs those to work properly"; fi
 
-i=0; n=0; progs=(curl perl); for p in "${progs[@]}"; do if hash "$p" &>/dev/null; then echo "$p is installed" && let c++; else echo "$p is not installed" && apk update && apk add $p && let n++;fi done && printf "%d of %d programs were installed.\n"  "$i" "${#progs[@]}" && printf "%d of %d programs were missing\n" "$n" "${#progs[@]}"
+# Install required packages based on OS
+i=0; n=0; progs=(curl perl); for p in "${progs[@]}"; do if hash "$p" &>/dev/null; then echo "$p is installed" && let c++; else echo "$p is not installed" && ${INSTALL} && let n++ ; fi done && printf "%d of %d programs were installed.\n" "$i" "${#progs[@]}" && printf "%d of %d programs were missing\n" "$n" "${#progs[@]}"
 
 while getopts "hC:t:r:f:c:m:n:i:l:o:v" opt
   do
@@ -57,8 +58,8 @@ while getopts "hC:t:r:f:c:m:n:i:l:o:v" opt
 # Import config file
 if [[ -f ${CONFIG} ]]; then source ${CONFIG}; else
   # Set defaults
-    TOKEN=${HIPCHAT_TOKEN:-<inserttoken>}
-    ROOM_ID=${HIPCHAT_ROOM_ID:-<insertroom>}
+    TOKEN=${HIPCHAT_TOKEN:-}
+    ROOM_ID=${HIPCHAT_ROOM_ID:-}
     FORMAT=${HIPCHAT_FORMAT:-html}
     HOST=${HIPCHAT_HOST:-api.hipchat.com}
     API=${HIPCHAT_API:-v2}
@@ -78,6 +79,7 @@ function SEND() {
   PAYLOAD="{ \
     \"color\": \"${COLOR}\", \
     \"message\": \"${MESSAGE}\", \
+    \"from\": \"${FROM}\", \
     \"message_format\": \"${FORMAT}\", \
     \"notify\": \"${NOTIFY}\" \
   }"
