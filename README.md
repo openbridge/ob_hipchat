@@ -159,7 +159,6 @@ $ hipchat -C "/opt/usr/hipchat.conf" -i "Ok: We love pizza!"
 **Hippy** is based off of the Hipchat CLI client
 https://github.com/hipchat/hipchat-cli
 
-
 ## License
 
 The MIT License (MIT) Copyright (c)
