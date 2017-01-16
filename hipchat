@@ -72,7 +72,7 @@ if [[ ${FORMAT} == 'html' ]]; then MESSAGE=$(echo -n "${MESSAGE}" | sed "s/$/\<b
 if [[ -z "${MESSAGE}" ]]; then MESSAGE=$(cat); fi
 if [[ -z "${NOTIFY+x}" ]]; then NOTIFY="${NOTIFY:-'True'}"; else NOTIFY="${NOTIFY:-'False'}"; fi
 
-MESSAGE=$(echo -n "${MESSAGE}"
+MESSAGE=$(echo -n "${MESSAGE}")
 
 function SEND() {
   PAYLOAD="{ \
