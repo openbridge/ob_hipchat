@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 set -e
-set -x
 
 usage() {
   cat << EOF
@@ -25,10 +24,10 @@ EOF
 }
 
 # Determine OS
-OS=$(cat /etc/*-release) && if grep -q "Alpine" <<< ${OS}; then echo "Alpine Linux" && INSTALL='apk update && apk add'; elif grep -q "Amazon" <<< ${OS}; then echo "Amazon Linux" && INSTALL='yum install $p -y'; elif grep -q "CentOS" <<< ${OS}; then echo "CentOS" && INSTALL='yum install $p -y'; elif grep -q "Ubuntu" <<< ${OS}; then echo "Ubuntu" && INSTALL='apt-get install $p -y'; else echo "WARNING: OS not detected. Please make sure CURL and PERL is installed as Hippy needs those to work properly"; fi
+#OS=$(cat /etc/*-release) && if grep -q "Alpine" <<< ${OS}; then echo "Alpine Linux" && INSTALL='apk update && apk add'; elif grep -q "Amazon" <<< ${OS}; then echo "Amazon Linux" && INSTALL='yum install $p -y'; elif grep -q "CentOS" <<< ${OS}; then echo "CentOS" && INSTALL='yum install $p -y'; elif grep -q "Ubuntu" <<< ${OS}; then echo "Ubuntu" && INSTALL='apt-get install $p -y'; else echo "WARNING: OS not detected. Please make sure CURL  is installed as Hippy needs it to work properly"; fi
 
 # Install required packages based on OS
-i=0; n=0; progs=(curl perl); for p in "${progs[@]}"; do if hash "$p" &>/dev/null; then echo "$p is installed" && let c++; else echo "$p is not installed" && ${INSTALL} && let n++ ; fi done && printf "%d of %d programs were installed.\n" "$i" "${#progs[@]}" && printf "%d of %d programs were missing\n" "$n" "${#progs[@]}"
+#i=0; progs=(curl); for p in "${progs[@]}"; do if hash "$p" &>/dev/null; then echo "$p is installed" && let c++; else echo "$p is not installed" && ${INSTALL} && let n++ ; fi done && printf "%d of %d programs were installed.\n" "$i" "${#progs[@]}" && printf "%d of %d programs were missing\n" "$n" "${#progs[@]}"
 
 while getopts "hC:t:r:f:c:m:n:i:l:o:v" opt
   do
@@ -73,7 +72,7 @@ if [[ ${FORMAT} == 'html' ]]; then MESSAGE=$(echo -n "${MESSAGE}" | sed "s/$/\<b
 if [[ -z "${MESSAGE}" ]]; then MESSAGE=$(cat); fi
 if [[ -z "${NOTIFY+x}" ]]; then NOTIFY="${NOTIFY:-'True'}"; else NOTIFY="${NOTIFY:-'False'}"; fi
 
-MESSAGE=$(echo -n "${MESSAGE}" | perl -p -e "s/(?<!href=\"|href=')((?:https?|ftp|mailto)\:\/\/[^ \n]*)/\<a href=\"\1\"\>\1\<\/a>/g")
+MESSAGE=$(echo -n "${MESSAGE}"
 
 function SEND() {
   PAYLOAD="{ \
