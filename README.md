@@ -1,3 +1,5 @@
+![Hippy](https://github.com/openbridge/ob_hipchat/blob/master/images/hipchat.png)
+
 Hippy: A Bash Hipchat Client
 ===========
 
